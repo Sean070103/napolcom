@@ -63,6 +63,55 @@ export interface Department {
   totalEmployees: number
 }
 
+export interface Memorandum {
+  id: string
+  title: string
+  content: string
+  senderId: string
+  senderName: string
+  senderDepartment: string
+  recipients: string[] // employee IDs
+  recipientNames: string[] // for display
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+  category: 'general' | 'policy' | 'announcement' | 'directive' | 'information'
+  status: 'draft' | 'sent' | 'read' | 'archived'
+  attachments?: string[]
+  readBy: string[] // employee IDs who have read it
+  expiresAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Task {
+  id: string
+  title: string
+  description: string
+  assignedBy: string
+  assignedByName: string
+  assignedTo: string[] // employee IDs
+  assignedToNames: string[] // for display
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+  status: 'pending' | 'in-progress' | 'completed' | 'overdue' | 'cancelled'
+  dueDate: string
+  completedAt?: string
+  completedBy?: string
+  progress: number // 0-100
+  tags: string[]
+  attachments?: string[]
+  comments: TaskComment[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface TaskComment {
+  id: string
+  taskId: string
+  employeeId: string
+  employeeName: string
+  content: string
+  createdAt: string
+}
+
 // Mock Data
 const mockEmployees: Employee[] = [
   {
@@ -325,12 +374,140 @@ const mockDepartments: Department[] = [
   },
 ]
 
+const mockMemorandums: Memorandum[] = [
+  {
+    id: uuidv4(),
+    title: "Updated COVID-19 Safety Protocols",
+    content: "All employees are required to follow the updated safety protocols including mandatory mask wearing in common areas and regular sanitization of workstations. Please review the attached guidelines and ensure compliance.",
+    senderId: "EMP001",
+    senderName: "Maria Santos",
+    senderDepartment: "Human Resources",
+    recipients: ["EMP001", "EMP002", "EMP003", "EMP004", "EMP005"],
+    recipientNames: ["Maria Santos", "Juan Dela Cruz", "Ana Reyes", "Pedro Martinez", "Carmen Lopez"],
+    priority: "high",
+    category: "policy",
+    status: "sent",
+    attachments: ["covid_protocols_2024.pdf"],
+    readBy: ["EMP001", "EMP002"],
+    createdAt: "2024-01-15T09:00:00Z",
+    updatedAt: "2024-01-15T09:00:00Z",
+  },
+  {
+    id: uuidv4(),
+    title: "Monthly Department Meeting Schedule",
+    content: "Please be informed that the monthly department heads meeting will be held every first Monday of the month at 2:00 PM in the Conference Room A. All department heads are required to attend.",
+    senderId: "EMP004",
+    senderName: "Pedro Martinez",
+    senderDepartment: "Operations",
+    recipients: ["EMP001", "EMP002", "EMP003", "EMP005"],
+    recipientNames: ["Maria Santos", "Juan Dela Cruz", "Ana Reyes", "Carmen Lopez"],
+    priority: "medium",
+    category: "announcement",
+    status: "sent",
+    readBy: ["EMP001", "EMP003"],
+    createdAt: "2024-01-14T14:30:00Z",
+    updatedAt: "2024-01-14T14:30:00Z",
+  },
+  {
+    id: uuidv4(),
+    title: "IT System Maintenance Notice",
+    content: "Scheduled maintenance will be performed on our internal systems this Saturday from 10:00 PM to 2:00 AM. During this time, some services may be temporarily unavailable. We apologize for any inconvenience.",
+    senderId: "EMP003",
+    senderName: "Ana Reyes",
+    senderDepartment: "IT Department",
+    recipients: ["EMP001", "EMP002", "EMP003", "EMP004", "EMP005"],
+    recipientNames: ["Maria Santos", "Juan Dela Cruz", "Ana Reyes", "Pedro Martinez", "Carmen Lopez"],
+    priority: "medium",
+    category: "information",
+    status: "sent",
+    readBy: ["EMP001", "EMP002", "EMP003"],
+    createdAt: "2024-01-13T11:00:00Z",
+    updatedAt: "2024-01-13T11:00:00Z",
+  },
+]
+
+const mockTasks: Task[] = [
+  {
+    id: uuidv4(),
+    title: "Review Q4 Financial Reports",
+    description: "Complete review of all Q4 financial reports and prepare summary for the board meeting next week. Ensure all data is accurate and properly formatted.",
+    assignedBy: "EMP002",
+    assignedByName: "Juan Dela Cruz",
+    assignedTo: ["EMP002"],
+    assignedToNames: ["Juan Dela Cruz"],
+    priority: "high",
+    status: "in-progress",
+    dueDate: "2024-01-25",
+    progress: 65,
+    tags: ["finance", "reports", "quarterly"],
+    comments: [
+      {
+        id: uuidv4(),
+        taskId: "task001",
+        employeeId: "EMP002",
+        employeeName: "Juan Dela Cruz",
+        content: "Started reviewing the reports. Will complete by Friday.",
+        createdAt: "2024-01-15T10:00:00Z",
+      },
+    ],
+    createdAt: "2024-01-10T09:00:00Z",
+    updatedAt: "2024-01-15T10:00:00Z",
+  },
+  {
+    id: uuidv4(),
+    title: "Update Employee Handbook",
+    description: "Review and update the employee handbook with new policies and procedures. Include recent changes to leave policies and remote work guidelines.",
+    assignedBy: "EMP001",
+    assignedByName: "Maria Santos",
+    assignedTo: ["EMP001"],
+    assignedToNames: ["Maria Santos"],
+    priority: "medium",
+    status: "pending",
+    dueDate: "2024-02-15",
+    progress: 0,
+    tags: ["hr", "documentation", "policies"],
+    comments: [],
+    createdAt: "2024-01-12T14:00:00Z",
+    updatedAt: "2024-01-12T14:00:00Z",
+  },
+  {
+    id: uuidv4(),
+    title: "Network Security Audit",
+    description: "Conduct comprehensive security audit of all network systems and identify potential vulnerabilities. Prepare detailed report with recommendations.",
+    assignedBy: "EMP003",
+    assignedByName: "Ana Reyes",
+    assignedTo: ["EMP003"],
+    assignedToNames: ["Ana Reyes"],
+    priority: "urgent",
+    status: "completed",
+    dueDate: "2024-01-20",
+    progress: 100,
+    completedAt: "2024-01-18T16:30:00Z",
+    completedBy: "EMP003",
+    tags: ["it", "security", "audit"],
+    comments: [
+      {
+        id: uuidv4(),
+        taskId: "task003",
+        employeeId: "EMP003",
+        employeeName: "Ana Reyes",
+        content: "Security audit completed. Report has been submitted to management.",
+        createdAt: "2024-01-18T16:30:00Z",
+      },
+    ],
+    createdAt: "2024-01-05T08:00:00Z",
+    updatedAt: "2024-01-18T16:30:00Z",
+  },
+]
+
 // Data Store Class
 class DataStore {
   private employees: Employee[] = mockEmployees
   private attendanceRecords: AttendanceRecord[] = mockAttendanceRecords
   private leaveRequests: LeaveRequest[] = mockLeaveRequests
   private departments: Department[] = mockDepartments
+  private memorandums: Memorandum[] = mockMemorandums
+  private tasks: Task[] = mockTasks
 
   // Employee Methods
   getEmployees(): Employee[] {
@@ -480,6 +657,159 @@ class DataStore {
       approved,
       rejected,
       total: this.leaveRequests.length,
+    }
+  }
+
+  // Memorandum Methods
+  getMemorandums(status?: string, employeeId?: string): Memorandum[] {
+    let memorandums = this.memorandums
+
+    if (status) {
+      memorandums = memorandums.filter(memo => memo.status === status)
+    }
+
+    if (employeeId) {
+      memorandums = memorandums.filter(memo => 
+        memo.recipients.includes(employeeId) || memo.senderId === employeeId
+      )
+    }
+
+    return memorandums.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }
+
+  getMemorandumById(id: string): Memorandum | undefined {
+    return this.memorandums.find(memo => memo.id === id)
+  }
+
+  addMemorandum(memorandum: Omit<Memorandum, 'id' | 'createdAt' | 'updatedAt'>): Memorandum {
+    const newMemorandum: Memorandum = {
+      ...memorandum,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    this.memorandums.push(newMemorandum)
+    return newMemorandum
+  }
+
+  updateMemorandum(id: string, updates: Partial<Memorandum>): Memorandum | null {
+    const index = this.memorandums.findIndex(memo => memo.id === id)
+    if (index === -1) return null
+    
+    this.memorandums[index] = { 
+      ...this.memorandums[index], 
+      ...updates,
+      updatedAt: new Date().toISOString()
+    }
+    return this.memorandums[index]
+  }
+
+  markMemorandumAsRead(id: string, employeeId: string): Memorandum | null {
+    const memorandum = this.getMemorandumById(id)
+    if (!memorandum) return null
+
+    if (!memorandum.readBy.includes(employeeId)) {
+      memorandum.readBy.push(employeeId)
+      memorandum.updatedAt = new Date().toISOString()
+    }
+
+    return memorandum
+  }
+
+  // Task Methods
+  getTasks(status?: string, employeeId?: string): Task[] {
+    let tasks = this.tasks
+
+    if (status) {
+      tasks = tasks.filter(task => task.status === status)
+    }
+
+    if (employeeId) {
+      tasks = tasks.filter(task => 
+        task.assignedTo.includes(employeeId) || task.assignedBy === employeeId
+      )
+    }
+
+    return tasks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }
+
+  getTaskById(id: string): Task | undefined {
+    return this.tasks.find(task => task.id === id)
+  }
+
+  addTask(task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Task {
+    const newTask: Task = {
+      ...task,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    this.tasks.push(newTask)
+    return newTask
+  }
+
+  updateTask(id: string, updates: Partial<Task>): Task | null {
+    const index = this.tasks.findIndex(task => task.id === id)
+    if (index === -1) return null
+    
+    this.tasks[index] = { 
+      ...this.tasks[index], 
+      ...updates,
+      updatedAt: new Date().toISOString()
+    }
+    return this.tasks[index]
+  }
+
+  addTaskComment(taskId: string, comment: Omit<TaskComment, 'id' | 'createdAt'>): TaskComment {
+    const newComment: TaskComment = {
+      ...comment,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+    }
+
+    const task = this.getTaskById(taskId)
+    if (task) {
+      task.comments.push(newComment)
+      task.updatedAt = new Date().toISOString()
+    }
+
+    return newComment
+  }
+
+  updateTaskProgress(id: string, progress: number): Task | null {
+    const task = this.getTaskById(id)
+    if (!task) return null
+
+    task.progress = Math.max(0, Math.min(100, progress))
+    task.updatedAt = new Date().toISOString()
+
+    if (progress >= 100) {
+      task.status = 'completed'
+      task.completedAt = new Date().toISOString()
+    } else if (task.status === 'completed') {
+      task.status = 'in-progress'
+      task.completedAt = undefined
+    }
+
+    return task
+  }
+
+  getTaskStats() {
+    const total = this.tasks.length
+    const pending = this.tasks.filter(t => t.status === 'pending').length
+    const inProgress = this.tasks.filter(t => t.status === 'in-progress').length
+    const completed = this.tasks.filter(t => t.status === 'completed').length
+    const overdue = this.tasks.filter(t => {
+      if (t.status === 'completed') return false
+      return new Date(t.dueDate) < new Date()
+    }).length
+
+    return {
+      total,
+      pending,
+      inProgress,
+      completed,
+      overdue,
     }
   }
 }
