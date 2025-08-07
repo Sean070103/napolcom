@@ -71,7 +71,7 @@ export async function POST(req: Request) {
    console.error("Error creating employee:", e);
 
     return new Response(
-      JSON.stringify({ error: "Failed to create employee", details: e }),
+      JSON.stringify({ error: "Failed to signup", details: e }),
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
