@@ -25,6 +25,7 @@ model Users {
  gsis       String
  philhealth String
  pagibig    String
+ role       String
 }
 
 //schema for Department table

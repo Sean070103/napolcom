@@ -1,5 +1,7 @@
 import prisma from '../../../../utils/connect'
 import bcrypt from 'bcryptjs';
+import { signToken } from '@/lib/auth'; 
+import { serialize } from 'cookie';
 
 export async function POST(req: Request) {
 
@@ -14,7 +16,8 @@ export async function POST(req: Request) {
       birthday,
       gsis,
       philhealth,
-     pagibig,
+      pagibig,
+      role,
     } = body;
  
  try {
@@ -29,7 +32,7 @@ export async function POST(req: Request) {
     );
   }
 
-    const hashedPassword = await bcrypt.hash(password, 15);
+    const hashedPassword = await bcrypt.hash(password, 12);
     // Create a new employee
     const createUser = await prisma.users.create({
       data: {
@@ -42,12 +45,25 @@ export async function POST(req: Request) {
        gsis,
        philhealth,
        pagibig,
+       role
       },
     });
   
+  // Generate JWT
+    const token = signToken({ id: createUser.id, username: createUser.username, role: createUser.role });
+  
       return new Response(JSON.stringify(createUser), {
       status: 201, // Use 201 for resource creation
-      headers: { "Content-Type": "application/json" },
+       headers: {
+        "Content-Type": "application/json",
+        'Set-Cookie': serialize('token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          path: '/',
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+        }),
+       },
     });
 
   
