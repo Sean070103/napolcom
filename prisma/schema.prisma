@@ -15,16 +15,17 @@ datasource db {
 
 //schema for Employee table
 model Users {
- id               String @id @default(auto()) @map("_id") @db.ObjectId
- name             String
- username         String
- password         String
- address          String
- gender           String
- birtday          String
- gsis             String
- philhealth       String
- pag_ibig_numbers String
+ id         String @id @default(auto()) @map("_id") @db.ObjectId
+ name       String
+ username   String
+ password   String
+ address    String
+ gender     String
+ birthday   String
+ gsis       String
+ philhealth String
+ pagibig    String
+ role       String
 }
 
 //schema for Department table
