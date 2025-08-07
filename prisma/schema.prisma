@@ -15,34 +15,60 @@ datasource db {
 
 //schema for Employee table
 model Users {
- id         String @id @default(auto()) @map("_id") @db.ObjectId
- name       String
- username   String
- password   String
- address    String
- gender     String
- birthday   String
- gsis       String
- philhealth String
- pagibig    String
- role       String
+ id          String   @id @default(auto()) @map("_id") @db.ObjectId
+ name        String
+ username    String
+ password    String
+ address     String
+ gender      String
+ birthday    String
+ gsis        String
+ philhealth  String
+ pagibig     String
+ role        String
+ dateCreated DateTime @default(now())
 }
 
 //schema for Department table
 model LetterOrders {
- id      String @id @default(auto()) @map("_id") @db.ObjectId
- userId  Int
- content String
+ id          String   @id @default(auto()) @map("_id") @db.ObjectId
+ userId      String
+ content     String
+ dateCreated DateTime @default(now())
 }
 
 model SpecialOrders {
- id      String @id @default(auto()) @map("_id") @db.ObjectId
- userId  Int
- content String
+ id          String   @id @default(auto()) @map("_id") @db.ObjectId
+ userId      String
+ content     String
+ dateCreated DateTime @default(now())
 }
 
 model Memorandums {
- id      String @id @default(auto()) @map("_id") @db.ObjectId
- userId  Int
- content String
+ id          String   @id @default(auto()) @map("_id") @db.ObjectId
+ userId      String
+ content     String
+ dateCreated DateTime @default(now())
+}
+
+model LeaveCredits {
+ id              String   @id @default(auto()) @map("_id") @db.ObjectId
+ userId          String
+ hoursAvailLeave Float
+ dateCreated     DateTime @default(now())
+}
+
+model CompensatoryTimeOff {
+ id            String   @id @default(auto()) @map("_id") @db.ObjectId
+ userId        String
+ hoursRendered Float
+ dateCreated   DateTime @default(now())
+}
+
+model History {
+ id          String   @id @default(auto()) @map("_id") @db.ObjectId
+ userId      String
+ content     String
+ contentId   String
+ dateCreated DateTime @default(now())
 }

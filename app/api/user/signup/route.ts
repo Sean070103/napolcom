@@ -52,7 +52,7 @@ export async function POST(req: Request) {
   // Generate JWT
     const token = signToken({ id: createUser.id, username: createUser.username, role: createUser.role });
   
-      return new Response(JSON.stringify(createUser), {
+      return new Response(JSON.stringify(createUser.id), {
       status: 201, // Use 201 for resource creation
        headers: {
         "Content-Type": "application/json",
