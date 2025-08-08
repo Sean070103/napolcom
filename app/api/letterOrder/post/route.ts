@@ -1,4 +1,4 @@
-// app/api/upload/route.ts (App Router)
+
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import s3 from "@/lib/s3";
 import { NextResponse } from "next/server";
@@ -6,7 +6,6 @@ import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth";
 import prisma from "@/utils/connect";
 
-// ✅ Ensures this runs in the Node.js runtime (required for Buffer, JWT, etc.)
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
@@ -21,7 +20,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Get cookies and extract token
     const token = (await cookies()).get("token")?.value;
 
     console.log("Cookies in request:", (await cookies()).getAll());
@@ -33,8 +31,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Verify JWT
+
     let userId: string;
+    
     try {
       const decoded = verifyToken(token); // { id, username, role, ... }
       console.log("JWT decoded payload:", decoded);
