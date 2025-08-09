@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     // Generate JWT
       const token = signToken({ id: findUsername.id, username: findUsername.username, role: findUsername.role });
    return new Response(
-    JSON.stringify("successfully signin!"),
+    JSON.stringify(findUsername.id),
     {
      status: 201,
        headers: {
