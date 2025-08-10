@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+ provider = "prisma-client-js"
+}
+
+datasource db {
+ provider = "mongodb"
+ url      = "mongodb+srv://napolcom46:ZC6Ry7yPYFTelZRj@cluster0.bzigtjc.mongodb.net/napolcom?retryWrites=true&w=majority&appName=Cluster0"
+}
+
+//schema for Employee table
+model Users {
+ id         String @id @default(auto()) @map("_id") @db.ObjectId
+ name       String
+ username   String
+ password   String
+ address    String
+ gender     String
+ birthday   String
+ gsis       String
+ philhealth String
+ pagibig    String
+ role       String
+}
+
+//schema for Department table
+model LetterOrders {
+ id      String @id @default(auto()) @map("_id") @db.ObjectId
+ userId  Int
+ content String
+}
+
+model SpecialOrders {
+ id      String @id @default(auto()) @map("_id") @db.ObjectId
+ userId  Int
+ content String
+}
+
+model Memorandums {
+ id      String @id @default(auto()) @map("_id") @db.ObjectId
+ userId  Int
+ content String
+}
