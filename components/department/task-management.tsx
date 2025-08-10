@@ -30,17 +30,19 @@ import {
   Eye,
   Edit,
   Trash2,
-  MoreHorizontal
+  MoreHorizontal,
+  Shield
 } from "lucide-react"
 import { dataStore } from "@/lib/data-store"
-import { format, isAfter, isBefore } from "date-fns"
+import { format } from "date-fns"
 
 interface TaskManagementProps {
   currentEmployeeId?: string
   departmentName?: string
+  userRole?: 'user' | 'admin' | 'super_admin'
 }
 
-export function TaskManagement({ currentEmployeeId, departmentName }: TaskManagementProps) {
+export function TaskManagement({ currentEmployeeId, departmentName, userRole }: TaskManagementProps) {
   const [tasks, setTasks] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -57,6 +59,8 @@ export function TaskManagement({ currentEmployeeId, departmentName }: TaskManage
     assignedToNames: [] as string[],
     tags: [] as string[],
   })
+
+  const isAdmin = userRole === 'admin' || userRole === 'super_admin'
 
   useEffect(() => {
     loadTasks()
@@ -105,7 +109,7 @@ export function TaskManagement({ currentEmployeeId, departmentName }: TaskManage
   }
 
   const isOverdue = (dueDate: string) => {
-    return isBefore(new Date(dueDate), new Date())
+    return new Date(dueDate) < new Date()
   }
 
   const filteredTasks = tasks.filter(task => {
@@ -197,12 +201,21 @@ export function TaskManagement({ currentEmployeeId, departmentName }: TaskManage
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>Task Management</CardTitle>
-            <CardDescription>Track and manage tasks across the organization</CardDescription>
+            <CardDescription>
+              {isAdmin ? "Track and manage tasks across the organization" : "View and track assigned tasks"}
+            </CardDescription>
           </div>
-          <Button onClick={() => setIsCreateOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Create Task
-          </Button>
+          {isAdmin ? (
+            <Button onClick={() => setIsCreateOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Create Task
+            </Button>
+          ) : (
+            <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <Shield className="w-4 h-4" />
+              <span>View Only</span>
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -482,42 +495,55 @@ export function TaskManagement({ currentEmployeeId, departmentName }: TaskManage
                 </div>
               </div>
               
-              <div>
-                <label className="text-sm font-medium">Assign to</label>
-                <Select 
-                  onValueChange={(value) => {
-                    const employees = dataStore.getEmployees()
-                    const employee = employees.find(emp => emp.employeeId === value)
-                    if (employee && !newTask.assignedTo.includes(value)) {
-                      setNewTask({
-                        ...newTask,
-                        assignedTo: [...newTask.assignedTo, value],
-                        assignedToNames: [...newTask.assignedToNames, employee.name]
-                      })
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select team members" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {dataStore.getEmployees().map((emp) => (
-                      <SelectItem key={emp.employeeId} value={emp.employeeId}>
-                        {emp.name} ({emp.department})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {newTask.assignedToNames.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {newTask.assignedToNames.map((name, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {name}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
+                             <div>
+                 <label className="text-sm font-medium">Assign to</label>
+                 <Select 
+                   onValueChange={(value) => {
+                     const employees = dataStore.getEmployees()
+                     const employee = employees.find(emp => emp.employeeId === value)
+                     if (employee && !newTask.assignedTo.includes(value)) {
+                       setNewTask({
+                         ...newTask,
+                         assignedTo: [...newTask.assignedTo, value],
+                         assignedToNames: [...newTask.assignedToNames, employee.name]
+                       })
+                     }
+                   }}
+                 >
+                   <SelectTrigger>
+                     <SelectValue placeholder="Select team members" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     {dataStore.getEmployees().filter(emp => 
+                       !newTask.assignedTo.includes(emp.employeeId)
+                     ).map((emp) => (
+                       <SelectItem key={emp.employeeId} value={emp.employeeId}>
+                         {emp.name} ({emp.department})
+                       </SelectItem>
+                     ))}
+                   </SelectContent>
+                 </Select>
+                 {newTask.assignedToNames.length > 0 && (
+                   <div className="mt-2 flex flex-wrap gap-1">
+                     {newTask.assignedToNames.map((name, index) => (
+                       <Badge 
+                         key={index} 
+                         variant="secondary" 
+                         className="text-xs cursor-pointer hover:bg-gray-300"
+                         onClick={() => {
+                           setNewTask({
+                             ...newTask,
+                             assignedTo: newTask.assignedTo.filter((_, i) => i !== index),
+                             assignedToNames: newTask.assignedToNames.filter((_, i) => i !== index)
+                           })
+                         }}
+                       >
+                         {name} ×
+                       </Badge>
+                     ))}
+                   </div>
+                 )}
+               </div>
             </div>
             
             <div className="flex justify-end gap-2">
@@ -543,7 +569,7 @@ function TaskCard({ task, onStatusChange, onProgressChange, onView }: {
   onProgressChange: (taskId: string, progress: number) => void
   onView: () => void
 }) {
-  const isOverdue = isAfter(new Date(), new Date(task.dueDate))
+  const isOverdue = new Date(task.dueDate) < new Date()
 
   return (
     <div className="border rounded-lg p-3 bg-white hover:shadow-md transition-shadow">

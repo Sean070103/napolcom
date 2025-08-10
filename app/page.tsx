@@ -1,17 +1,34 @@
-import { LoginForm } from "@/components/auth/login-form"
+"use client"
+
+import { useAuth } from "@/lib/auth-context"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export default function HomePage() {
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (isAuthenticated && user) {
+        // Redirect based on user role
+        if (user.role === 'user') {
+          router.push("/user-dashboard")
+        } else {
+          router.push("/admin-dashboard")
+        }
+      } else {
+        router.push("/landing")
+      }
+    }
+  }, [isAuthenticated, user, isLoading, router])
+
+  // Show loading while determining redirect
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="mx-auto w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mb-4">
-            <span className="text-white font-bold text-xl">NPC</span>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">NAPOLCOM</h1>
-          <p className="text-gray-600">Attendance & Leave Management System</p>
-        </div>
-        <LoginForm />
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading NAPOLCOM System...</p>
       </div>
     </div>
   )

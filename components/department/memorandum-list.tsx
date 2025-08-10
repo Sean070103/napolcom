@@ -27,7 +27,8 @@ import {
   AlertCircle,
   CheckCircle,
   Eye,
-  Send
+  Send,
+  Shield
 } from "lucide-react"
 import { dataStore } from "@/lib/data-store"
 import { format } from "date-fns"
@@ -35,9 +36,10 @@ import { format } from "date-fns"
 interface MemorandumListProps {
   currentEmployeeId?: string
   departmentName?: string
+  userRole?: 'user' | 'admin' | 'super_admin'
 }
 
-export function MemorandumList({ currentEmployeeId, departmentName }: MemorandumListProps) {
+export function MemorandumList({ currentEmployeeId, departmentName, userRole }: MemorandumListProps) {
   const [memorandums, setMemorandums] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -53,6 +55,8 @@ export function MemorandumList({ currentEmployeeId, departmentName }: Memorandum
     recipients: [] as string[],
     recipientNames: [] as string[],
   })
+
+  const isAdmin = userRole === 'admin' || userRole === 'super_admin'
 
   useEffect(() => {
     loadMemorandums()
@@ -174,10 +178,12 @@ export function MemorandumList({ currentEmployeeId, departmentName }: Memorandum
             <CardTitle>Memorandums</CardTitle>
             <CardDescription>View and manage official communications</CardDescription>
           </div>
-          <Button onClick={() => setIsComposeOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Compose
-          </Button>
+          {isAdmin && (
+            <Button onClick={() => setIsComposeOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Compose
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -359,121 +365,136 @@ export function MemorandumList({ currentEmployeeId, departmentName }: Memorandum
         </div>
 
         {/* Compose Dialog */}
-        <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Compose Memorandum</DialogTitle>
-              <DialogDescription>Create a new memorandum</DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Title</label>
-                <Input
-                  value={newMemorandum.title}
-                  onChange={(e) => setNewMemorandum({...newMemorandum, title: e.target.value})}
-                  placeholder="Enter memorandum title"
-                />
-              </div>
+        {isAdmin && (
+          <Dialog open={isComposeOpen} onOpenChange={setIsComposeOpen}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Compose Memorandum</DialogTitle>
+                <DialogDescription>Create a new memorandum</DialogDescription>
+              </DialogHeader>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">Priority</label>
-                  <Select 
-                    value={newMemorandum.priority} 
-                    onValueChange={(value) => setNewMemorandum({...newMemorandum, priority: value as any})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="urgent">Urgent</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <label className="text-sm font-medium">Title</label>
+                  <Input
+                    value={newMemorandum.title}
+                    onChange={(e) => setNewMemorandum({...newMemorandum, title: e.target.value})}
+                    placeholder="Enter memorandum title"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Priority</label>
+                    <Select 
+                      value={newMemorandum.priority} 
+                      onValueChange={(value) => setNewMemorandum({...newMemorandum, priority: value as any})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium">Category</label>
+                    <Select 
+                      value={newMemorandum.category} 
+                      onValueChange={(value) => setNewMemorandum({...newMemorandum, category: value as any})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="general">General</SelectItem>
+                        <SelectItem value="policy">Policy</SelectItem>
+                        <SelectItem value="announcement">Announcement</SelectItem>
+                        <SelectItem value="directive">Directive</SelectItem>
+                        <SelectItem value="information">Information</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 
                 <div>
-                  <label className="text-sm font-medium">Category</label>
+                  <label className="text-sm font-medium">Recipients</label>
                   <Select 
-                    value={newMemorandum.category} 
-                    onValueChange={(value) => setNewMemorandum({...newMemorandum, category: value as any})}
+                    onValueChange={(value) => {
+                      const employees = dataStore.getEmployees()
+                      const employee = employees.find(emp => emp.employeeId === value)
+                      if (employee && !newMemorandum.recipients.includes(value)) {
+                        setNewMemorandum({
+                          ...newMemorandum,
+                          recipients: [...newMemorandum.recipients, value],
+                          recipientNames: [...newMemorandum.recipientNames, employee.name]
+                        })
+                      }
+                    }}
                   >
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Select recipients" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="general">General</SelectItem>
-                      <SelectItem value="policy">Policy</SelectItem>
-                      <SelectItem value="announcement">Announcement</SelectItem>
-                      <SelectItem value="directive">Directive</SelectItem>
-                      <SelectItem value="information">Information</SelectItem>
+                      {dataStore.getEmployees().filter(emp => 
+                        !newMemorandum.recipients.includes(emp.employeeId)
+                      ).map((emp) => (
+                        <SelectItem key={emp.employeeId} value={emp.employeeId}>
+                          {emp.name} ({emp.department})
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
+                  {newMemorandum.recipientNames.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {newMemorandum.recipientNames.map((name, index) => (
+                        <Badge 
+                          key={index} 
+                          variant="secondary" 
+                          className="text-xs cursor-pointer hover:bg-gray-300"
+                          onClick={() => {
+                            setNewMemorandum({
+                              ...newMemorandum,
+                              recipients: newMemorandum.recipients.filter((_, i) => i !== index),
+                              recipientNames: newMemorandum.recipientNames.filter((_, i) => i !== index)
+                            })
+                          }}
+                        >
+                          {name} ×
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Content</label>
+                  <Textarea
+                    value={newMemorandum.content}
+                    onChange={(e) => setNewMemorandum({...newMemorandum, content: e.target.value})}
+                    placeholder="Enter memorandum content..."
+                    rows={6}
+                  />
                 </div>
               </div>
               
-              <div>
-                <label className="text-sm font-medium">Recipients</label>
-                <Select 
-                  onValueChange={(value) => {
-                    const employees = dataStore.getEmployees()
-                    const employee = employees.find(emp => emp.employeeId === value)
-                    if (employee && !newMemorandum.recipients.includes(value)) {
-                      setNewMemorandum({
-                        ...newMemorandum,
-                        recipients: [...newMemorandum.recipients, value],
-                        recipientNames: [...newMemorandum.recipientNames, employee.name]
-                      })
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select recipients" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {dataStore.getEmployees().map((emp) => (
-                      <SelectItem key={emp.employeeId} value={emp.employeeId}>
-                        {emp.name} ({emp.department})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {newMemorandum.recipientNames.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {newMemorandum.recipientNames.map((name, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {name}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setIsComposeOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSendMemorandum}>
+                  <Send className="w-4 h-4 mr-2" />
+                  Send Memorandum
+                </Button>
               </div>
-              
-              <div>
-                <label className="text-sm font-medium">Content</label>
-                <Textarea
-                  value={newMemorandum.content}
-                  onChange={(e) => setNewMemorandum({...newMemorandum, content: e.target.value})}
-                  placeholder="Enter memorandum content..."
-                  rows={6}
-                />
-              </div>
-            </div>
-            
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsComposeOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSendMemorandum}>
-                <Send className="w-4 h-4 mr-2" />
-                Send Memorandum
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        )}
       </CardContent>
     </Card>
   )

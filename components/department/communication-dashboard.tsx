@@ -16,7 +16,8 @@ import {
   MessageSquare,
   Plus,
   Eye,
-  Send
+  Send,
+  Activity
 } from "lucide-react"
 import { dataStore } from "@/lib/data-store"
 import { format } from "date-fns"
@@ -26,9 +27,10 @@ import { TaskManagement } from "./task-management"
 interface CommunicationDashboardProps {
   currentEmployeeId?: string
   departmentName?: string
+  userRole?: 'user' | 'admin' | 'super_admin'
 }
 
-export function CommunicationDashboard({ currentEmployeeId, departmentName }: CommunicationDashboardProps) {
+export function CommunicationDashboard({ currentEmployeeId, departmentName, userRole }: CommunicationDashboardProps) {
   const [memorandumStats, setMemorandumStats] = useState({
     total: 0,
     unread: 0,
@@ -45,6 +47,8 @@ export function CommunicationDashboard({ currentEmployeeId, departmentName }: Co
   const [recentMemorandums, setRecentMemorandums] = useState<any[]>([])
   const [recentTasks, setRecentTasks] = useState<any[]>([])
 
+  const isAdmin = userRole === 'admin' || userRole === 'super_admin'
+
   useEffect(() => {
     loadStats()
   }, [currentEmployeeId, departmentName])
@@ -57,7 +61,7 @@ export function CommunicationDashboard({ currentEmployeeId, departmentName }: Co
     }
 
     const unread = memorandums.filter(memo => 
-      !memo.readBy.includes(currentEmployeeId) && memo.status === "sent"
+      !memo.readBy.includes(currentEmployeeId || "") && memo.status === "sent"
     ).length
 
     const urgent = memorandums.filter(memo => 
@@ -108,14 +112,12 @@ export function CommunicationDashboard({ currentEmployeeId, departmentName }: Co
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "completed":
+      case "sent":
         return "text-green-600"
-      case "in-progress":
-        return "text-blue-600"
-      case "pending":
+      case "draft":
         return "text-yellow-600"
-      case "overdue":
-        return "text-red-600"
+      case "pending":
+        return "text-orange-600"
       default:
         return "text-gray-600"
     }
@@ -124,242 +126,216 @@ export function CommunicationDashboard({ currentEmployeeId, departmentName }: Co
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Communication Dashboard</h1>
-          <p className="text-gray-600">Manage memorandums and tasks for NAPOLCOM</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Mail className="w-4 h-4 mr-2" />
-            Quick Memo
-          </Button>
-          <Button>
-            <CheckSquare className="w-4 h-4 mr-2" />
-            New Task
-          </Button>
-        </div>
-      </div>
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Memorandums</CardTitle>
-            <Mail className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{memorandumStats.total}</div>
-            <p className="text-xs text-muted-foreground">
-              {memorandumStats.unread} unread
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Tasks</CardTitle>
-            <CheckSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{taskStats.total}</div>
-            <p className="text-xs text-muted-foreground">
-              {taskStats.pending} pending, {taskStats.inProgress} in progress
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Urgent Items</CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{memorandumStats.urgent + taskStats.overdue}</div>
-            <p className="text-xs text-muted-foreground">
-              {memorandumStats.urgent} urgent memos, {taskStats.overdue} overdue tasks
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{memorandumStats.recent}</div>
-            <p className="text-xs text-muted-foreground">
-              {memorandumStats.recent} items this week
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content */}
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="memorandums">Memorandums</TabsTrigger>
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Recent Memorandums */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Recent Memorandums</CardTitle>
-                    <CardDescription>Latest communications</CardDescription>
-                  </div>
-                  <Button variant="ghost" size="sm">
-                    <Eye className="w-4 h-4 mr-2" />
-                    View All
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentMemorandums.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Mail className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-500 text-sm">No recent memorandums</p>
-                    </div>
-                  ) : (
-                    recentMemorandums.map((memo) => (
-                      <div key={memo.id} className="flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50">
-                        <div className="flex-shrink-0">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <Mail className="w-4 h-4 text-blue-600" />
-                          </div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-medium text-sm truncate">{memo.title}</h4>
-                            <Badge 
-                              variant="outline" 
-                              className={`text-xs ${getPriorityColor(memo.priority)}`}
-                            >
-                              {memo.priority}
-                            </Badge>
-                          </div>
-                          <p className="text-gray-600 text-xs line-clamp-2 mb-2">
-                            {memo.content}
-                          </p>
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
-                            <span>{memo.senderName}</span>
-                            <span>{format(new Date(memo.createdAt), "MMM dd")}</span>
-                            <span>{memo.recipientNames.length} recipients</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Recent Tasks */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Recent Tasks</CardTitle>
-                    <CardDescription>Latest assignments</CardDescription>
-                  </div>
-                  <Button variant="ghost" size="sm">
-                    <Eye className="w-4 h-4 mr-2" />
-                    View All
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentTasks.length === 0 ? (
-                    <div className="text-center py-8">
-                      <CheckSquare className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-500 text-sm">No recent tasks</p>
-                    </div>
-                  ) : (
-                    recentTasks.map((task) => (
-                      <div key={task.id} className="flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50">
-                        <div className="flex-shrink-0">
-                          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <CheckSquare className="w-4 h-4 text-green-600" />
-                          </div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-medium text-sm truncate">{task.title}</h4>
-                            <Badge 
-                              variant="outline" 
-                              className={`text-xs ${getPriorityColor(task.priority)}`}
-                            >
-                              {task.priority}
-                            </Badge>
-                          </div>
-                          <p className="text-gray-600 text-xs line-clamp-2 mb-2">
-                            {task.description}
-                          </p>
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
-                            <span className={getStatusColor(task.status)}>{task.status}</span>
-                            <span>{task.progress}% complete</span>
-                            <span>Due {format(new Date(task.dueDate), "MMM dd")}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Communication Hub</h1>
+            <p className="text-gray-600 mt-1">Manage memorandums, tasks, and department communications.</p>
           </div>
+          <div className="h-12 w-12 bg-primary rounded-full flex items-center justify-center">
+            <MessageSquare className="h-6 w-6 text-primary-foreground" />
+          </div>
+        </div>
+      </div>
 
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>Common tasks and shortcuts</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Button variant="outline" className="h-20 flex-col">
-                  <Mail className="w-6 h-6 mb-2" />
-                  <span className="text-sm">Send Memorandum</span>
-                </Button>
-                <Button variant="outline" className="h-20 flex-col">
-                  <CheckSquare className="w-6 h-6 mb-2" />
-                  <span className="text-sm">Create Task</span>
-                </Button>
-                <Button variant="outline" className="h-20 flex-col">
-                  <Users className="w-6 h-6 mb-2" />
-                  <span className="text-sm">Team Overview</span>
-                </Button>
-                <Button variant="outline" className="h-20 flex-col">
-                  <TrendingUp className="w-6 h-6 mb-2" />
-                  <span className="text-sm">View Reports</span>
-                </Button>
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="card-hover">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Memorandums</p>
+                <p className="text-2xl font-bold text-gray-900">{memorandumStats.total}</p>
+                <p className="text-xs text-blue-600">{memorandumStats.unread} unread</p>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <FileText className="h-5 w-5 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="memorandums">
-          <MemorandumList 
-            currentEmployeeId={currentEmployeeId}
-            departmentName={departmentName}
-          />
-        </TabsContent>
+        <Card className="card-hover">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Tasks</p>
+                <p className="text-2xl font-bold text-gray-900">{taskStats.total}</p>
+                <p className="text-xs text-green-600">{taskStats.completed} completed</p>
+              </div>
+              <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <CheckSquare className="h-5 w-5 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="tasks">
-          <TaskManagement 
-            currentEmployeeId={currentEmployeeId}
-            departmentName={departmentName}
-          />
-        </TabsContent>
-      </Tabs>
+        <Card className="card-hover">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Urgent Items</p>
+                <p className="text-2xl font-bold text-gray-900">{memorandumStats.urgent}</p>
+                <p className="text-xs text-red-600">Require attention</p>
+              </div>
+              <div className="h-10 w-10 bg-red-100 rounded-lg flex items-center justify-center">
+                <AlertCircle className="h-5 w-5 text-red-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="card-hover">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Recent Activity</p>
+                <p className="text-2xl font-bold text-gray-900">{memorandumStats.recent}</p>
+                <p className="text-xs text-purple-600">This week</p>
+              </div>
+              <div className="h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Activity className="h-5 w-5 text-purple-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content Tabs */}
+      <Card className="card-hover">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <MessageSquare className="h-5 w-5 text-blue-600" />
+            <span>Communication Management</span>
+          </CardTitle>
+          <CardDescription>
+            Create, manage, and track memorandums and tasks
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="memorandums" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="memorandums" className="flex items-center space-x-2">
+                <FileText className="h-4 w-4" />
+                <span>Memorandums</span>
+                {memorandumStats.unread > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {memorandumStats.unread}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="tasks" className="flex items-center space-x-2">
+                <CheckSquare className="h-4 w-4" />
+                <span>Tasks</span>
+                {taskStats.pending > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {taskStats.pending}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="memorandums" className="mt-6">
+              <MemorandumList currentEmployeeId={currentEmployeeId} departmentName={departmentName} userRole={userRole} />
+            </TabsContent>
+            
+            <TabsContent value="tasks" className="mt-6">
+              <TaskManagement currentEmployeeId={currentEmployeeId} departmentName={departmentName} userRole={userRole} />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Memorandums */}
+        <Card className="card-hover">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              <span>Recent Memorandums</span>
+            </CardTitle>
+            <CardDescription>
+              Latest memorandums and communications
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recentMemorandums.length === 0 ? (
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No memorandums</h3>
+                  <p className="text-gray-600">No recent memorandums to display.</p>
+                </div>
+              ) : (
+                recentMemorandums.map((memo) => (
+                  <div key={memo.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="h-8 w-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <FileText className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900">{memo.subject}</p>
+                      <p className="text-sm text-gray-600">From: {memo.sender}</p>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Badge variant="outline" className="text-xs">
+                          {memo.priority}
+                        </Badge>
+                        <span className="text-xs text-gray-500">
+                          {format(new Date(memo.createdAt), "MMM dd, yyyy")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Tasks */}
+        <Card className="card-hover">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <CheckSquare className="h-5 w-5 text-green-600" />
+              <span>Recent Tasks</span>
+            </CardTitle>
+            <CardDescription>
+              Latest task assignments and updates
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recentTasks.length === 0 ? (
+                <div className="text-center py-8">
+                  <CheckSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks</h3>
+                  <p className="text-gray-600">No recent tasks to display.</p>
+                </div>
+              ) : (
+                recentTasks.map((task) => (
+                  <div key={task.id} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center">
+                      <CheckSquare className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900">{task.title}</p>
+                      <p className="text-sm text-gray-600">Assigned to: {task.assignedTo}</p>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Badge variant="outline" className="text-xs">
+                          {task.status}
+                        </Badge>
+                        <span className="text-xs text-gray-500">
+                          Due: {format(new Date(task.dueDate), "MMM dd, yyyy")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 } 

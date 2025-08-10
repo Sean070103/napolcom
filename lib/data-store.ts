@@ -13,6 +13,13 @@ export interface Employee {
   address?: string
   emergencyContact?: string
   emergencyPhone?: string
+  // Additional personal information
+  gender?: 'male' | 'female'
+  dateOfBirth?: string
+  gsisNumber?: string
+  philhealthNumber?: string
+  pagibigNumber?: string
+  // Leave and time off information
   leaveBalances: {
     vacation: number
     sick: number
@@ -22,6 +29,7 @@ export interface Employee {
     study: number
     bereavement: number
   }
+  compensatoryTimeOff?: number
   createdAt?: string
   updatedAt?: string
 }
@@ -112,6 +120,46 @@ export interface TaskComment {
   createdAt: string
 }
 
+export interface EmployeeDocument {
+  id: string
+  employeeId: string
+  documentType: 'letter_order' | 'special_order' | 'memorandum'
+  title: string
+  referenceNumber: string
+  issueDate: string
+  documentUrl?: string
+  status: 'active' | 'expired' | 'cancelled'
+  description?: string
+  issuedBy?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface User {
+  id: string
+  fullName: string
+  email: string
+  username: string
+  passwordHash: string
+  role: 'super_admin' | 'admin' | 'user'
+  profilePhoto?: string
+  isActive: boolean
+  lastLoginAt?: string
+  createdAt: string
+  updatedAt: string
+  createdBy?: string // ID of the user who created this account
+}
+
+export interface AccountCreationLog {
+  id: string
+  createdUserId: string
+  createdUserName: string
+  createdByUserId: string
+  createdByUserName: string
+  role: 'super_admin' | 'admin' | 'user'
+  createdAt: string
+}
+
 // Mock Data
 const mockEmployees: Employee[] = [
   {
@@ -127,6 +175,12 @@ const mockEmployees: Employee[] = [
     address: "123 Main Street, Quezon City, Metro Manila",
     emergencyContact: "Jose Santos",
     emergencyPhone: "+63 923 456 7890",
+    gender: "female",
+    dateOfBirth: "1985-06-15",
+    gsisNumber: "123456789012345",
+    philhealthNumber: "1234-5678-9012",
+    pagibigNumber: "1234-5678-9012",
+    compensatoryTimeOff: 8,
     leaveBalances: {
       vacation: 12,
       sick: 8,
@@ -152,6 +206,12 @@ const mockEmployees: Employee[] = [
     address: "456 Oak Avenue, Makati City, Metro Manila",
     emergencyContact: "Maria Dela Cruz",
     emergencyPhone: "+63 945 678 9012",
+    gender: "male",
+    dateOfBirth: "1982-03-10",
+    gsisNumber: "234567890123456",
+    philhealthNumber: "2345-6789-0123",
+    pagibigNumber: "2345-6789-0123",
+    compensatoryTimeOff: 12,
     leaveBalances: {
       vacation: 15,
       sick: 10,
@@ -177,6 +237,12 @@ const mockEmployees: Employee[] = [
     address: "789 Pine Street, Taguig City, Metro Manila",
     emergencyContact: "Carlos Reyes",
     emergencyPhone: "+63 967 890 1234",
+    gender: "female",
+    dateOfBirth: "1990-09-25",
+    gsisNumber: "345678901234567",
+    philhealthNumber: "3456-7890-1234",
+    pagibigNumber: "3456-7890-1234",
+    compensatoryTimeOff: 6,
     leaveBalances: {
       vacation: 18,
       sick: 12,
@@ -202,6 +268,12 @@ const mockEmployees: Employee[] = [
     address: "321 Elm Street, Pasig City, Metro Manila",
     emergencyContact: "Isabella Martinez",
     emergencyPhone: "+63 989 012 3456",
+    gender: "male",
+    dateOfBirth: "1978-12-03",
+    gsisNumber: "456789012345678",
+    philhealthNumber: "4567-8901-2345",
+    pagibigNumber: "4567-8901-2345",
+    compensatoryTimeOff: 15,
     leaveBalances: {
       vacation: 20,
       sick: 15,
@@ -227,6 +299,12 @@ const mockEmployees: Employee[] = [
     address: "654 Maple Drive, Mandaluyong City, Metro Manila",
     emergencyContact: "Roberto Lopez",
     emergencyPhone: "+63 901 234 5678",
+    gender: "female",
+    dateOfBirth: "1988-04-20",
+    gsisNumber: "567890123456789",
+    philhealthNumber: "5678-9012-3456",
+    pagibigNumber: "5678-9012-3456",
+    compensatoryTimeOff: 4,
     leaveBalances: {
       vacation: 10,
       sick: 7,
@@ -426,6 +504,96 @@ const mockMemorandums: Memorandum[] = [
   },
 ]
 
+const mockEmployeeDocuments: EmployeeDocument[] = [
+  {
+    id: uuidv4(),
+    employeeId: "EMP001",
+    documentType: "letter_order",
+    title: "Letter Order - Appointment as HR Manager",
+    referenceNumber: "LO-2024-001",
+    issueDate: "2024-01-15",
+    documentUrl: "/documents/lo-2024-001.pdf",
+    status: "active",
+    description: "Official appointment as Human Resources Manager",
+    issuedBy: "NAPOLCOM Chairman",
+    createdAt: "2024-01-15T00:00:00Z",
+    updatedAt: "2024-01-15T00:00:00Z",
+  },
+  {
+    id: uuidv4(),
+    employeeId: "EMP001",
+    documentType: "special_order",
+    title: "Special Order - Training Assignment",
+    referenceNumber: "SO-2024-005",
+    issueDate: "2024-01-10",
+    documentUrl: "/documents/so-2024-005.pdf",
+    status: "active",
+    description: "Assignment to conduct employee training program",
+    issuedBy: "NAPOLCOM Executive Director",
+    createdAt: "2024-01-10T00:00:00Z",
+    updatedAt: "2024-01-10T00:00:00Z",
+  },
+  {
+    id: uuidv4(),
+    employeeId: "EMP002",
+    documentType: "memorandum",
+    title: "Memorandum - Financial Reporting Guidelines",
+    referenceNumber: "MO-2024-012",
+    issueDate: "2024-01-12",
+    documentUrl: "/documents/mo-2024-012.pdf",
+    status: "active",
+    description: "Updated guidelines for financial reporting procedures",
+    issuedBy: "Finance Director",
+    createdAt: "2024-01-12T00:00:00Z",
+    updatedAt: "2024-01-12T00:00:00Z",
+  },
+  {
+    id: uuidv4(),
+    employeeId: "EMP003",
+    documentType: "letter_order",
+    title: "Letter Order - IT System Access",
+    referenceNumber: "LO-2024-008",
+    issueDate: "2024-01-08",
+    documentUrl: "/documents/lo-2024-008.pdf",
+    status: "active",
+    description: "Authorization for system administrator access",
+    issuedBy: "IT Director",
+    createdAt: "2024-01-08T00:00:00Z",
+    updatedAt: "2024-01-08T00:00:00Z",
+  },
+  {
+    id: uuidv4(),
+    employeeId: "EMP004",
+    documentType: "special_order",
+    title: "Special Order - Operations Review",
+    referenceNumber: "SO-2024-003",
+    issueDate: "2024-01-05",
+    documentUrl: "/documents/so-2024-003.pdf",
+    status: "active",
+    description: "Assignment to conduct operations review",
+    issuedBy: "Operations Director",
+    createdAt: "2024-01-05T00:00:00Z",
+    updatedAt: "2024-01-05T00:00:00Z",
+  },
+]
+
+const mockUsers: User[] = [
+  {
+    id: "user001",
+    fullName: "System Administrator",
+    email: "admin@napolcom.gov.ph",
+    username: "admin",
+    passwordHash: "$2b$10$hashed_password_placeholder", // In real app, this would be bcrypt hash
+    role: "super_admin",
+    isActive: true,
+    lastLoginAt: undefined,
+    createdAt: "2024-01-01T00:00:00Z",
+    updatedAt: "2024-01-01T00:00:00Z",
+  },
+]
+
+const mockAccountCreationLogs: AccountCreationLog[] = []
+
 const mockTasks: Task[] = [
   {
     id: uuidv4(),
@@ -508,6 +676,9 @@ class DataStore {
   private departments: Department[] = mockDepartments
   private memorandums: Memorandum[] = mockMemorandums
   private tasks: Task[] = mockTasks
+  private employeeDocuments: EmployeeDocument[] = mockEmployeeDocuments
+  private users: User[] = mockUsers
+  private accountCreationLogs: AccountCreationLog[] = mockAccountCreationLogs
 
   // Employee Methods
   getEmployees(): Employee[] {
@@ -811,6 +982,252 @@ class DataStore {
       completed,
       overdue,
     }
+  }
+
+  // Employee Document Methods
+  getEmployeeDocuments(employeeId: string, documentType?: string): EmployeeDocument[] {
+    let documents = this.employeeDocuments.filter(doc => doc.employeeId === employeeId)
+    
+    if (documentType) {
+      documents = documents.filter(doc => doc.documentType === documentType)
+    }
+    
+    return documents.sort((a, b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime())
+  }
+
+  getEmployeeDocumentById(id: string): EmployeeDocument | undefined {
+    return this.employeeDocuments.find(doc => doc.id === id)
+  }
+
+  addEmployeeDocument(document: Omit<EmployeeDocument, 'id' | 'createdAt' | 'updatedAt'>): EmployeeDocument {
+    const newDocument: EmployeeDocument = {
+      ...document,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    this.employeeDocuments.push(newDocument)
+    return newDocument
+  }
+
+  updateEmployeeDocument(id: string, updates: Partial<EmployeeDocument>): EmployeeDocument | null {
+    const index = this.employeeDocuments.findIndex(doc => doc.id === id)
+    if (index === -1) return null
+    
+    this.employeeDocuments[index] = { 
+      ...this.employeeDocuments[index], 
+      ...updates,
+      updatedAt: new Date().toISOString()
+    }
+    return this.employeeDocuments[index]
+  }
+
+  deleteEmployeeDocument(id: string): boolean {
+    const index = this.employeeDocuments.findIndex(doc => doc.id === id)
+    if (index === -1) return false
+    
+    this.employeeDocuments.splice(index, 1)
+    return true
+  }
+
+  // User Methods
+  getUsers(): User[] {
+    return this.users
+  }
+
+  getUserById(id: string): User | undefined {
+    return this.users.find(user => user.id === id)
+  }
+
+  getUserByEmail(email: string): User | undefined {
+    return this.users.find(user => user.email === email)
+  }
+
+  getUserByUsername(username: string): User | undefined {
+    return this.users.find(user => user.username === username)
+  }
+
+  addUser(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>, createdByUserId?: string): User {
+    // Validate role permissions if this is an admin-created account
+    if (createdByUserId) {
+      const createdByUser = this.getUserById(createdByUserId)
+      if (createdByUser && !this.canCreateUser(createdByUser.role, user.role)) {
+        throw new Error(`You do not have permission to create ${user.role} accounts`)
+      }
+    }
+
+    const newUser: User = {
+      ...user,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    
+    this.users.push(newUser)
+
+    // Log account creation
+    if (createdByUserId) {
+      const createdByUser = this.getUserById(createdByUserId)
+      const log: AccountCreationLog = {
+        id: uuidv4(),
+        createdUserId: newUser.id,
+        createdUserName: newUser.fullName,
+        createdByUserId: createdByUserId,
+        createdByUserName: createdByUser?.fullName || 'Unknown',
+        role: newUser.role,
+        createdAt: new Date().toISOString(),
+      }
+      this.accountCreationLogs.push(log)
+    }
+
+    return newUser
+  }
+
+  updateUser(id: string, updates: Partial<User>): User | null {
+    const index = this.users.findIndex(user => user.id === id)
+    if (index === -1) return null
+    
+    this.users[index] = { 
+      ...this.users[index], 
+      ...updates,
+      updatedAt: new Date().toISOString()
+    }
+    return this.users[index]
+  }
+
+  deleteUser(id: string): boolean {
+    const index = this.users.findIndex(user => user.id === id)
+    if (index === -1) return false
+    
+    this.users.splice(index, 1)
+    return true
+  }
+
+  // Account Creation Log Methods
+  getAccountCreationLogs(): AccountCreationLog[] {
+    return this.accountCreationLogs.sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+  }
+
+  getAccountCreationLogsByCreator(createdByUserId: string): AccountCreationLog[] {
+    return this.accountCreationLogs
+      .filter(log => log.createdByUserId === createdByUserId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }
+
+  // Role-based validation methods
+  canCreateUser(creatorRole: string, targetRole: string): boolean {
+    if (creatorRole === 'super_admin') {
+      return true // Super admin can create any role (super_admin, admin, user)
+    }
+    if (creatorRole === 'admin') {
+      return targetRole === 'user' // Admin can only create user accounts
+    }
+    return false // Users cannot create accounts
+  }
+
+  getAvailableRolesForCreator(creatorRole: string): string[] {
+    switch (creatorRole) {
+      case 'super_admin':
+        return ['super_admin', 'admin', 'user']
+      case 'admin':
+        return ['user']
+      default:
+        return []
+    }
+  }
+
+  // Password validation
+  validatePassword(password: string): { isValid: boolean; errors: string[] } {
+    const errors: string[] = []
+    
+    if (password.length < 8) {
+      errors.push('Password must be at least 8 characters long')
+    }
+    
+    if (!/[A-Z]/.test(password)) {
+      errors.push('Password must contain at least one uppercase letter')
+    }
+    
+    if (!/[a-z]/.test(password)) {
+      errors.push('Password must contain at least one lowercase letter')
+    }
+    
+    if (!/\d/.test(password)) {
+      errors.push('Password must contain at least one number')
+    }
+    
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      errors.push('Password must contain at least one special character')
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    }
+  }
+
+  // Public registration method - defaults to 'user' role
+  registerUser(userData: {
+    fullName: string
+    email: string
+    username: string
+    password: string
+  }): { success: boolean; user?: User; errors?: string[] } {
+    const errors: string[] = []
+    
+    // Check if email already exists
+    if (this.getUserByEmail(userData.email)) {
+      errors.push('Email address is already registered')
+    }
+    
+    // Check if username already exists
+    if (this.getUserByUsername(userData.username)) {
+      errors.push('Username is already taken')
+    }
+    
+    // Validate password
+    const passwordValidation = this.validatePassword(userData.password)
+    if (!passwordValidation.isValid) {
+      errors.push(...passwordValidation.errors)
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(userData.email)) {
+      errors.push('Please enter a valid email address')
+    }
+    
+    // Validate username format (alphanumeric and underscore only)
+    const usernameRegex = /^[a-zA-Z0-9_]+$/
+    if (!usernameRegex.test(userData.username)) {
+      errors.push('Username can only contain letters, numbers, and underscores')
+    }
+    
+    if (userData.username.length < 3) {
+      errors.push('Username must be at least 3 characters long')
+    }
+    
+    if (userData.fullName.trim().length < 2) {
+      errors.push('Full name must be at least 2 characters long')
+    }
+    
+    if (errors.length > 0) {
+      return { success: false, errors }
+    }
+    
+    // Create new user with 'user' role (default for public registration)
+    const newUser = this.addUser({
+      fullName: userData.fullName.trim(),
+      email: userData.email.toLowerCase(),
+      username: userData.username.toLowerCase(),
+      passwordHash: `$2b$10$hashed_${userData.password}_placeholder`, // In real app, use bcrypt
+      role: 'user',
+      isActive: true,
+    })
+    
+    return { success: true, user: newUser }
   }
 }
 

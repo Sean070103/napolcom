@@ -15,9 +15,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
-import { CheckCircle, XCircle, Eye, Calendar, Clock } from "lucide-react"
+import { CheckCircle, XCircle, Eye, Calendar, Clock, User } from "lucide-react"
 import { dataStore } from "@/lib/data-store"
 import { format } from "date-fns"
+import Link from "next/link"
 
 interface LeaveApprovalTableProps {
   departmentName?: string
@@ -207,7 +208,15 @@ export function LeaveApprovalTable({ departmentName }: LeaveApprovalTableProps) 
                 <TableRow key={request.id}>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{request.employeeName}</div>
+                      <div className="font-medium">
+                        <Link 
+                          href={`/department/employees/${request.employeeId}`}
+                          className="flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          <User className="w-4 h-4" />
+                          {request.employeeName}
+                        </Link>
+                      </div>
                       <div className="text-sm text-gray-500">
                         {request.department} • ID: {request.employeeId}
                       </div>
